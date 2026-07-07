@@ -1,7 +1,7 @@
 import os
 import shutil
 import json
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 from flask import render_template
 from werkzeug.utils import secure_filename
