@@ -3,6 +3,7 @@ import shutil
 import json
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from flask import render_template
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
@@ -18,7 +19,7 @@ from langchain_core.documents import Document
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_folder='static', static_url_path='')
+app = Flask(__name__, static_folder="static", template_folder=".")
 CORS(app)
 
 # Configuration
@@ -77,7 +78,7 @@ def purge_chroma_db():
 # Serve Frontend Root
 @app.route('/')
 def index():
-    return app.send_static_file('index.html')
+    return render_template("index.html")
 
 # Get Current App Status
 @app.route('/api/status', methods=['GET'])
