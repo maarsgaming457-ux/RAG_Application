@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroQuery RAG - AI Document Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Marked for Markdown Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <!-- KaTeX for LaTeX Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-brain-circuit"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>AeroQuery<span>RAG</span></h1>
+                    <p>AI-Powered Document Intelligence</p>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot inactive" id="status-dot"></span>
+                <span class="status-text" id="status-text">No Document Loaded</span>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <!-- Left Panel: Control Center -->
+            <section class="control-panel glass">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-sliders"></i> Control Center</h2>
+                </div>
+
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <label class="section-title">Upload Document</label>
+                    <input type="file" id="file-input" accept=".pdf,.txt" style="display: none;">
+                    <div class="drag-zone" id="drag-zone">
+                        <div class="drag-zone-content">
+                            <i class="fa-solid fa-cloud-arrow-up drag-icon"></i>
+                            <p class="drag-text-primary">Drag & Drop File Here</p>
+                            <p class="drag-text-secondary">Supports PDF and TXT (Max 25MB)</p>
+                            <button class="btn btn-secondary" id="browse-btn">Browse Files</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Uploading Progress / File Info -->
+                    <div class="file-status-card" id="file-status-card" style="display: none;">
+                        <div class="file-info">
+                            <i class="fa-solid fa-file-pdf file-icon" id="file-icon"></i>
+                            <div class="file-details">
+                                <span class="file-name" id="file-name">document.pdf</span>
+                                <span class="file-size" id="file-size">1.2 MB</span>
+                            </div>
+                            <button class="remove-file-btn" id="remove-file-btn" title="Remove document">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="progress-bar-container" id="progress-container">
+                            <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+                        </div>
+                        <div class="status-message" id="status-message">Parsing document...</div>
+                    </div>
+                </div>
+
+                <!-- Parameters Section -->
+                <div class="parameters-section">
+                    <label class="section-title">RAG Configuration</label>
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span>Chunk Size</span>
+                            <span class="param-value" id="chunk-size-val">1000 chars</span>
+                        </div>
+                        <input type="range" id="chunk-size" min="200" max="2000" step="100" value="1000">
+                    </div>
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span>Overlap Size</span>
+                            <span class="param-value" id="chunk-overlap-val">50 chars</span>
+                        </div>
+                        <input type="range" id="chunk-overlap" min="0" max="500" step="10" value="50">
+                    </div>
+                </div>
+
+                <!-- Database Status & Actions -->
+                <div class="actions-section">
+                    <div class="stats-card">
+                        <div class="stats-item">
+                            <span class="stats-label">Stored Chunks</span>
+                            <span class="stats-number" id="stats-chunks">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">Current File</span>
+                            <span class="stats-number file-name-short" id="stats-filename">None</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-full" id="clear-db-btn">
+                        <i class="fa-solid fa-trash-can"></i> Clear Database
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Chat Assistant -->
+            <section class="chat-panel glass">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-comments"></i> Intelligent Assistant</h2>
+                </div>
+
+                <!-- Chat History -->
+                <div class="chat-history" id="chat-history">
+                    <div class="system-welcome">
+                        <div class="welcome-icon">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <h3>Welcome to AeroQuery RAG</h3>
+                        <p>Upload a document on the left, and ask me questions about it. I will extract relevant details using semantic search and provide exact citations.</p>
+                        <div class="suggestion-chips" id="suggestion-chips" style="display: none;">
+                            <button class="chip" data-query="Summarize the core topics discussed in this document.">Summarize document</button>
+                            <button class="chip" data-query="What are the key findings or takeaways?">Key findings</button>
+                            <button class="chip" data-query="List any important dates or deadlines mentioned.">Dates & Deadlines</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea id="query-input" placeholder="Ask a question about the document..." rows="1" disabled></textarea>
+                        <button id="send-btn" class="send-btn" disabled title="Send question">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <p class="input-note">Must upload a document first to activate questions.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
