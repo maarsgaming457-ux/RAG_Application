@@ -24,8 +24,8 @@ CORS(app)
 
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-CHROMA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chroma_db')
-STATUS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_status.json')
+CHROMA_DIR = "/tmp/chroma_db"
+STATUS_FILE = "/tmp/db_status.json"
 ALLOWED_EXTENSIONS = {'pdf', 'txt'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
